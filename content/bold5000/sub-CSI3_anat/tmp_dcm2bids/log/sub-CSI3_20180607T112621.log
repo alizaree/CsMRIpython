@@ -1,0 +1,4 @@
+--- dcm2bids start ---
+subprocess: dcm2niix
+Exception: [Errno 2] No such file or directory
+subprocess failed
