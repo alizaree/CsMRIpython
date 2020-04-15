@@ -1,8 +1,16 @@
 import pywt
 import numpy as np
 import time
+import matplotlib.image as mpimg
+from PIL import Image
 
 def gen_wavelet():
+    """
+    Generates the wavelet to be used for the 2D DWT and 2D iDWT
+    In out code, we use the CDF9/7 wavelet
+    """
+    
+    
     # Define the coefficients for the CDF9/7 filters
     factor=1
 
@@ -30,7 +38,6 @@ def gen_wavelet():
     cdf97 = pywt.Wavelet('cdf97', [cdf97_an_lo, cdf97_an_hi, cdf97_syn_lo, cdf97_syn_hi])
 
     return cdf97
-
 
 def run_DWT(signal, wav, flag_print=0, mode='zero'):
     """
@@ -60,7 +67,6 @@ def run_DWT(signal, wav, flag_print=0, mode='zero'):
 
     return cA, cH, cV, cD, time_diff
 
-
 def run_iDWT(wav, cA, cH, cV, cD, mode='zero'):
     """
     Inverse 2D DWT used for reconstructing the original image
@@ -73,3 +79,30 @@ def run_iDWT(wav, cA, cH, cV, cD, mode='zero'):
     rec_sig = pywt.idwt2(coeffs, wav, mode)
 
     return rec_sig
+
+def run_fftc(x):
+    """
+    Performs 2D centered fft on x, returning res
+    """
+    
+    f = np.fft.fft2(x)
+    res = np.fft.fftshift(f)
+    return res
+
+def run_ifftc(X):
+    """
+    Performs 2D centered ifft on X, returning res
+    """
+    
+    x_temp = np.fft.ifft2(X)
+    res = np.fft.fftshift(x_temp)
+    return res
+
+def rgb2gray(rgb):
+    """
+    calculates the grayscale of input rgb image
+    """
+    r, g, b = rgb[:,:,0], rgb[:,:,1], rgb[:,:,2]
+    res = 0.2989 * r + 0.5870 * g + 0.1140 * b
+
+    return res
