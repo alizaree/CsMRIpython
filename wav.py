@@ -10,7 +10,6 @@ def gen_wavelet():
     In out code, we use the CDF9/7 wavelet
     """
     
-    
     # Define the coefficients for the CDF9/7 filters
     factor=1
 
@@ -94,8 +93,8 @@ def run_ifftc(X):
     Performs 2D centered ifft on X, returning res
     """
     
-    x_temp = np.fft.ifft2(X)
-    res = np.fft.fftshift(x_temp)
+    x_temp = np.fft.ifftshift(X)
+    res = np.fft.ifft2(x_temp)
     return res
 
 def rgb2gray(rgb):
