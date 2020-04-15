@@ -10,6 +10,7 @@ def gen_wavelet():
     In out code, we use the CDF9/7 wavelet
     """
     
+    
     # Define the coefficients for the CDF9/7 filters
     factor=1
 
@@ -104,4 +105,19 @@ def rgb2gray(rgb):
     r, g, b = rgb[:,:,0], rgb[:,:,1], rgb[:,:,2]
     res = 0.2989 * r + 0.5870 * g + 0.1140 * b
 
+    return res
+
+def soft_threshold(y,gamma):
+    """
+    returns thresholded 2D input y according to threshold gamma
+    function ignores the phase of input
+    """
+    
+    # set output to zero if y>abs(gamma), otherwise retain value
+    res = np.zeros(y.shape)
+    for i in range(y.shape[0]):
+        for j in range(y.shape[1]):
+            val = np.absolute(y[i,j])
+            if(val>gamma):
+                res[i,j] = ((val-gamma)/val)*y[i,j]
     return res
