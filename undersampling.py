@@ -9,7 +9,7 @@ from wav import *
 def uniformly_undersample(x, fact):
     """
     returns uniformly undersampled array x
-    x is undersampled by a factor of fact
+    x is undersampled by factor 'fact'
     """
     
     res = np.zeros(x.shape)
@@ -18,10 +18,11 @@ def uniformly_undersample(x, fact):
             res[i*fact,j*fact] = x[i*fact,j*fact]
     return res
 
-def nonuniformly_undersample(x,num):
+def nonuniformly_undersample(x,num,fact):
     """
     returns nonuniformly undersampled array x
     set num to 1, 2, or 3 to experiment with different non-uniform undersampling schemas
+    x is undersampled by factor 'fact'
     Schema 1: Pure Random Permutation
     Schema 2: TBD
     Schema 3: TBD
@@ -30,10 +31,12 @@ def nonuniformly_undersample(x,num):
     # Random Permutation Schema
     if num == 1:
         res = np.zeros(x.shape)
+        x = np.random.permutation(x)
         for i in range(np.floor(x.shape[0]/fact).astype(np.int32)):
             for j in range(np.floor(x.shape[0]/fact).astype(np.int32)):
                 res[i*fact,j*fact] = x[i*fact,j*fact]
-    
+    # TBD Schema
+    # TBD Schema
     return res
 
 def POCS_input_uniform(f,fact):
@@ -50,15 +53,16 @@ def POCS_input_uniform(f,fact):
     f_hat = run_ifftc(F_hat)*fact
     return f_hat, F_hat
 
-def POCS_input_nonuniform(f, num):
+def POCS_input_nonuniform(f, num, fact):
     """
     Function to generate POCS core algorithm input with nonuniform undersampling
+    Undersampling occurs by factor 'fact', which should be a power of 2.
     1. take fft of image
     2. non uniformly undersample. set num to 1, 2, or 3 to experiment with different non-uniform undersampling schemas
     3. return ifft of undersampled image, fft of undersampled image
     """
     
     F = run_fftc(f)
-    F_hat = nonuniformly_undersample(F,num)
+    F_hat = nonuniformly_undersample(F,num, fact)
     f_hat = run_ifftc(F_hat)
     return f_hat, F_hat
