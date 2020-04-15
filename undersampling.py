@@ -21,28 +21,28 @@ def nonuniformly_undersample(x,num):
     
     return res
 
-def POCS_input_uniform(x):
+def POCS_input_uniform(f):
     """
     Function to generate POCS core algorithm input with uniform sampling
     1. take fft of image
     2. uniformly undersample
-    3. return ifft of undersampled image
+    3. return ifft of undersampled image, fft of undersampled image
     """
     
-    F = run_fftc(x)
+    F = run_fftc(f)
     F_hat = uniformly_undersample(F)
-    res = run_ifftc(F_hat)
-    return res
+    f_hat = run_ifftc(F_hat)
+    return f_hat, F_hat
 
-def POCS_input_nonuniform(x, num):
+def POCS_input_nonuniform(f, num):
     """
     Function to generate POCS core algorithm input with nonuniform sampling
     1. take fft of image
     2. non uniformly undersample. set num to 1, 2, or 3 to experiment with different non-uniform undersampling schemas
-    3. return ifft of undersampled image
+    3. return ifft of undersampled image, fft of undersampled image
     """
     
-    F = run_fftc(x)
+    F = run_fftc(f)
     F_hat = nonuniformly_undersample(F,num)
-    res = run_ifftc(F_hat)
-    return res
+    f_hat = run_ifftc(F_hat)
+    return f_hat, F_hat
