@@ -5,6 +5,19 @@ import matplotlib.image as mpimg
 from PIL import Image
 import scipy
 from wav import *
+# changed it to create a map which will later be used in the loss function to recover, changed it so in the map, the elements that are set to 1 will be removed.
+
+
+def rmvMap_brn( p, sz1,sz2):
+    rmvMap = {}# rmvMap will contain all the indices we want to remove.
+    for idx1 in np.arange(sz1):
+        for idx2 in np.arange(sz2):
+            coin = np.random.rand(1,)
+            rmvMap[(idx1, idx2)] = 1*(coin > p)
+    idxs = np.asarray(list(rmvMap.keys()))
+    return idxs
+
+
 
 def uniformly_undersample(x, fact):
     """
@@ -12,11 +25,13 @@ def uniformly_undersample(x, fact):
     x is undersampled by factor 'fact'
     """
     
-    res = np.zeros(x.shape)
+    res = np.ones(x.shape)
     for i in range(np.floor(x.shape[0]/fact).astype(np.int32)):
         for j in range(np.floor(x.shape[0]/fact).astype(np.int32)):
-            res[i*fact,j*fact] = x[i*fact,j*fact]
-    return res
+            res[i*fact,j*fact] = 0 #x[i*fact,j*fact]
+    idx1, idx2=np.where(res==1)
+    idxs=np.vstack((idx1, idx2)).transpose()
+    return idxs
 
 def nonuniformly_undersample(x,num,fact):
     """
@@ -30,14 +45,16 @@ def nonuniformly_undersample(x,num,fact):
     
     # Random Permutation Schema
     if num == 1:
-        res = np.zeros(x.shape)
+        res = np.ones(x.shape)
         x = np.random.permutation(x)
         for i in range(np.floor(x.shape[0]/fact).astype(np.int32)):
             for j in range(np.floor(x.shape[0]/fact).astype(np.int32)):
-                res[i*fact,j*fact] = x[i*fact,j*fact]
+                res[i*fact,j*fact] = 0
+    idx1, idx2=np.where(res==1)
+    idxs=np.vstack((idx1, idx2)).transpose()
     # TBD Schema
     # TBD Schema
-    return res
+    return idxs
 
 def POCS_input_uniform(f,fact):
     """
