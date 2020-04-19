@@ -80,6 +80,29 @@ def run_iDWT(wav, cA, cH, cV, cD, mode='zero'):
 
     return rec_sig
 
+def DWT(signal,wav,levels,mode='zero'):
+    """
+    returns full scale DWT of signal with multiple levels
+    """
+    
+    coeffs = pywt.wavedec2(signal, wav, mode, level = levels)
+    res, coeff_slices = pywt.coeffs_to_array(coeffs)
+    
+    # res is the full dwt image
+    # coeff_slices is the list of slices corresponding to each coeffecient
+    return res, coeff_slices
+
+def iDWT(s0, wav, coeff_slices, mode='zero'):
+    """
+    returns full scale iDWT of s0 with multiple levels
+    """
+    
+    coeffs = pywt.array_to_coeffs(s0, coeff_slices, output_format='wavedec2')
+    res = pywt.waverec2(coeffs, wav, mode)
+
+    # res is the full recovered image
+    return res
+
 def run_fftc(x):
     """
     Performs 2D centered fft on x, returning res
