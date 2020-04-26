@@ -61,7 +61,8 @@ def rmvMap_brn( p, sz1,sz2):
 
 
 def measure_map(mtx,idxs,wave):
-    pre_proj = np.fft.fft2(wav.run_iDWT(wave, mtx), norm="ortho")
+    pre_proj = wav.run_fftc(wav.run_iDWT(wave, mtx))
+    #pre_proj= wav.run_ifftc(pre_proj) ## make sure it works make center
     pre_proj[idxs[:, 0], idxs[:, 1]] = 0
     return pre_proj
 
@@ -71,7 +72,8 @@ def measure_map(mtx,idxs,wave):
 
 def measure_map_adj(mtx,idxs,wave):
     mtx[idxs[:, 0], idxs[:, 1]] = 0
-    return wav.run_DWT( np.fft.ifft2(mtx, norm="ortho"), wave)
+    pre_proj= wav.run_ifftc(mtx)# uncenter
+    return wav.run_DWT(pre_proj, wave)
 
 
 
@@ -80,7 +82,7 @@ def measure_map_adj(mtx,idxs,wave):
 
 
 def Sgrad(S,y, idxs, wave):
-    return measure_map_adj(meas_map(S, idxs, wave)-y, idxs, wave)
+    return measure_map_adj(measure_map(S, idxs, wave)-y, idxs, wave)
 
 
 
@@ -91,7 +93,7 @@ def prox(S,a):
 
 
 def lasse_f(S, Y, lambd, idxs, wave):
-    return 0.5 * np.linalg.norm(meas_map(S, idxs, wave) - Y, ord='fro')**2 + lambd * np.sum(np.abs(S))
+    return 0.5 * np.linalg.norm(measure_map(S, idxs, wave) - Y, ord='fro')**2 + lambd * np.sum(np.abs(S))
 
 
 

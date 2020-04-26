@@ -8,6 +8,8 @@ from wav import *
 # changed it to create a map which will later be used in the loss function to recover, changed it so in the map, the elements that are set to 1 will be removed.
 
 
+## undersampling: return idxs where each idxs(:,0) is the rowss and idxs(:,1) is the columns of pixels which we want to delete and undersample.
+
 def rmvMap_brn( p, sz1,sz2):
     rmvMap = {}# rmvMap will contain all the indices we want to remove.
     for idx1 in np.arange(sz1):
@@ -32,6 +34,7 @@ def uniformly_undersample(x, fact):
     idx1, idx2=np.where(res==1)
     idxs=np.vstack((idx1, idx2)).transpose()
     return idxs
+
 
 def nonuniformly_undersample(x,num,fact):
     """

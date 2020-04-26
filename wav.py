@@ -64,9 +64,10 @@ def run_DWT(signal, wav, flag_print=0, mode='zero'):
     time_diff = toc - tic
     if flag_print:
         print("approx: {} \n detail: {} \n{}\n{}\n".format(cA, cH, cV, cD))
-
+    
+    
     return cA, cH, cV, cD, time_diff
-
+## input of iDWT should be level, wav, picture)
 def run_iDWT(wav, cA, cH, cV, cD, mode='zero'):
     """
     Inverse 2D DWT used for reconstructing the original image
