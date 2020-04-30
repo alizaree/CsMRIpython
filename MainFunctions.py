@@ -54,14 +54,15 @@ def rmvMap_brn( p, sz1,sz2):
         for idx2 in np.arange(sz2):
             coin = np.random.rand(1,)
             rmvMap[(idx1, idx2)] = 1*(coin > p)
-    idxs = np.asarray(list(Omega.keys()))
+    idxs = np.asarray(list(rmvMap.keys()))
     return idxs
 
 
 
 
-def measure_map(mtx,idxs,wave):
-    pre_proj = wav.run_fftc(wav.run_iDWT(wave, mtx))
+def measure_map(mtx,idxs,wave, levels, coeff_slices):
+    
+    pre_proj = np.fft.fft2( wav.iDWT( mtx, wave,levels, coeff_slices ),norm="ortho")
     #pre_proj= wav.run_ifftc(pre_proj) ## make sure it works make center
     pre_proj[idxs[:, 0], idxs[:, 1]] = 0
     return pre_proj
@@ -70,10 +71,11 @@ def measure_map(mtx,idxs,wave):
 ## inverse fft mapping. takes the wavelet in the end (need to be modified)
 
 
-def measure_map_adj(mtx,idxs,wave):
+def measure_map_adj(mtx,idxs,wave, levels):
     mtx[idxs[:, 0], idxs[:, 1]] = 0
-    pre_proj= wav.run_ifftc(mtx)# uncenter
-    return wav.run_DWT(pre_proj, wave)
+    pre_proj= np.fft.ifft2(mtx ,norm="ortho")# uncenter
+    res, dummy = wav.DWT(pre_proj, wave, levels)
+    return res
 
 
 
@@ -81,8 +83,9 @@ def measure_map_adj(mtx,idxs,wave):
 
 
 
-def Sgrad(S,y, idxs, wave):
-    return measure_map_adj(measure_map(S, idxs, wave)-y, idxs, wave)
+def Sgrad(S,y, idxs, wave, levels, coeff_slices):
+    
+    return measure_map_adj(measure_map(S, idxs, wave, levels, coeff_slices)-y, idxs, wave, levels)
 
 
 
@@ -91,26 +94,62 @@ def prox(S,a):
     return np.exp(1j * np.angle(S)) * np.maximum(np.abs(S) - a, 0)
 
 
-
-def lasse_f(S, Y, lambd, idxs, wave):
-    return 0.5 * np.linalg.norm(measure_map(S, idxs, wave) - Y, ord='fro')**2 + lambd * np.sum(np.abs(S))
+def lasse_f(S, Y, lambd, idxs, wave, levels, coeff_slices):
+    return 0.5 * np.linalg.norm(measure_map(S, idxs, wave, levels, coeff_slices) - Y, ord='fro')**2 + lambd * np.sum(np.abs(S))
 
 
 
 # loss of lasse it can be modified to momentum gradient later.
-def loss_prox(S, Y, lambd,eps, idxs, wave):
+def loss_prox(S, Y, lambd,eps, idxs, wave, levels, coeff_slices, itr=float("inf"), minItr=0):
     # Creating a list to store the loss
     Y_frob = np.linalg.norm(Y, ord='fro')
-    alpha=1/Y_frob
+    Y_scaled = Y / Y_frob
+    alpha=1
     loss = []
-    loss.append(lasse_f(S, Y, lambd, idxs, wave))
+    loss.append(lasse_f(S, Y_frob, lambd, idxs, wave, levels, coeff_slices))
     i = 1
     cond=True
     while(cond):
-    S = prox(S - alpha*Sgrad(S, Y, idxs, wave), lambd*alpha)
-    loss.append(lasse_f(S, Y, lambd, idxs, wave))
-    if loss[i-1] - loss[i] < eps:
-        cond=False
-    i = i + 1
+        S = prox(S - Sgrad(S, Y_scaled, idxs, wave, levels, coeff_slices), lambd)
+        loss.append(lasse_f(S, Y_scaled, lambd, idxs, wave, levels, coeff_slices))
+        if i>minItr:
+            if (loss[i-1] - loss[i]) < eps or itr<i:
+                cond=False
+        i = i + 1
 
     return loss, S
+
+def meas_fun(mtx,idxs,levels, wave=None):
+    pre_proj = np.fft.fft2(wav.iDWT( mtx, wave,levels), norm="ortho")
+    pre_proj[idxs[:, 0], idxs[:, 1]] = 0
+    return pre_proj
+
+
+def meas_fun_adj(mtx,idxs,levels, wave=None):
+    mtx[idxs[:, 0], idxs[:, 1]] = 0
+    return wav.DWT( np.fft.ifft2(mtx, norm="ortho"), wave,levels)
+
+def Sgrad2(S,y,idxs,levels):
+    return meas_fun_adj(meas_fun(S,idxs,levels)-y,idxs,levels)
+
+def prox2(S,a):
+    return np.exp(1j * np.angle(S)) * np.maximum(np.abs(S) - a, 0)
+
+def lasse_f2(S, Y, lambd,idxs,levels):
+    return 0.5 * np.linalg.norm(meas_fun(S,idxs,levels) - Y, ord='fro')**2 + lambd*np.sum(np.abs(S)) 
+
+
+def loss_prox2(S, Y, lambd,eps,Y_frob,idxs,levels,itr ):
+  # Creating a list to store the loss
+    loss = []
+    loss.append(lasse_f2(S, Y_frob, lambd,idxs,levels))
+    i = 1
+    cond=True
+    while(cond):
+        S = prox2(S - Sgrad2(S, Y,idxs,levels), lambd) # there is no need for alpha since we have already devided Y by 1/norm
+        loss.append(lasse_f2(S, Y, lambd,idxs,levels))
+        if loss[i-1] - loss[i] < eps or i>itr:
+            cond=False
+        i = i + 1
+    
+    return loss, S*Y_frob

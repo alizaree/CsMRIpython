@@ -14,8 +14,9 @@ def rmvMap_brn( p, sz1,sz2):
     rmvMap = {}# rmvMap will contain all the indices we want to remove.
     for idx1 in np.arange(sz1):
         for idx2 in np.arange(sz2):
-            coin = np.random.rand(1,)
-            rmvMap[(idx1, idx2)] = 1*(coin > p)
+            coin = np.random.rand(1)
+            if coin > p:
+                rmvMap[(idx1, idx2)] = 1
     idxs = np.asarray(list(rmvMap.keys()))
     return idxs
 

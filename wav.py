@@ -81,45 +81,61 @@ def run_iDWT(wav, cA, cH, cV, cD, mode='zero'):
 
     return rec_sig
 
-def DWT(signal,wav,levels,mode='zero'):
+def DWT(signal,wave,levels,mode='periodization'):
+    """
+    returns full scale DWT of signal with multiple levels
+    """
+    c = pywt.wavedec2(signal, 'db4', mode='periodization', level=levels)
+    output, bye = pywt.coeffs_to_array(c)
+    return output
+
+
+def DWTSlice(levels,wave,sz, mode='zero'):
     """
     returns full scale DWT of signal with multiple levels
     """
     
-    coeffs = pywt.wavedec2(signal, wav, mode, level = levels)
+    coeffs = pywt.wavedec2(np.zeros((sz, sz)), 'db4', mode='periodization', level=levels)#wave, mode, level = levels)
     res, coeff_slices = pywt.coeffs_to_array(coeffs)
     
     # res is the full dwt image
     # coeff_slices is the list of slices corresponding to each coeffecient
-    return res, coeff_slices
+    return coeff_slices
 
-def iDWT(s0, wav, coeff_slices, mode='zero'):
+def iDWT(s0, wave,levels, coeff_slices=None, mode='zero'):
     """
     returns full scale iDWT of s0 with multiple levels
     """
-    
-    coeffs = pywt.array_to_coeffs(s0, coeff_slices, output_format='wavedec2')
-    res = pywt.waverec2(coeffs, wav, mode)
+    sz = s0.shape[0]
+    if coeff_slices is None:
+        coeff_slices = default_slices(levels, sz)
+    c = pywt.array_to_coeffs(s0, coeff_slices, output_format='wavedec2')
+    return pywt.waverec2(c, 'db4', mode='periodization')
 
-    # res is the full recovered image
-    return res
+def idwt(levels, wdom_data, slices=None):
+    n = wdom_data.shape[0]
+    if slices is None:
+        slices = default_slices(levels, n)
+    c = pywt.array_to_coeffs(wdom_data, slices, output_format='wavedec2')
+    return pywt.waverec2(c, 'db4', mode='periodization')
 
-def run_fftc(x):
+
+def run_fftc(x, Norm="ortho"):
     """
     Performs 2D centered fft on x, returning res
     """
     
-    f = np.fft.fft2(x)
+    f = np.fft.fft2(x, norm=Norm)
     res = np.fft.fftshift(f)
     return res
 
-def run_ifftc(X):
+def run_ifftc(X, Norm="ortho"):
     """
     Performs 2D centered ifft on X, returning res
     """
     
     x_temp = np.fft.ifftshift(X)
-    res = np.fft.ifft2(x_temp)
+    res = np.fft.ifft2(x_temp, norm=Norm)
     return res
 
 def rgb2gray(rgb):
@@ -145,3 +161,23 @@ def soft_threshold(y,gamma):
             if(val>gamma):
                 res[i,j] = ((val-gamma)/val)*y[i,j]
     return res
+def default_slices(levels, n):
+    c = pywt.wavedec2(np.zeros((n, n)), 'db4', mode='periodization', level=levels)
+    bye, slices = pywt.coeffs_to_array(c)
+    return slices
+
+# Wrapper for forward discrete wavelet transform
+# Output data as a matrix (we don't care about tuple format)
+def dwt(levels, sdom_data):
+    c = pywt.wavedec2(sdom_data, 'db4', mode='periodization', level=levels)
+    output, bye = pywt.coeffs_to_array(c)
+    return output
+
+# Wrapper for inverse discrete wavelet transform
+# Expect wdom_data as a matrix (we don't care about tuple format)
+def idwt(levels, wdom_data, slices=None):
+    n = wdom_data.shape[0]
+    if slices is None:
+        slices = default_slices(levels, n)
+    c = pywt.array_to_coeffs(wdom_data, slices, output_format='wavedec2')
+    return pywt.waverec2(c, 'db4', mode='periodization')
