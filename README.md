@@ -1,3 +1,10 @@
+Dependencies: 
+
+pywavelets
+matplotlib
+scipy
+numpy
+
 MIT License
 
 Copyright (c) [2020] [Kaylo Littlejohn, Ali Zare]
