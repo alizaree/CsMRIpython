@@ -1,5 +1,6 @@
 %% Michael Lustig CS exercise
 %% 1). Sparse signals and Denoising
+%% AUTHOR KAYLO LITTLEJOHN
 
 %generate random 1x128 vector with 5 non-zero signals
 clear all;
