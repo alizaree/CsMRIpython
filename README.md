@@ -6,7 +6,7 @@ scipy
 numpy
 
 The main function to run is called Main.ipynb
-Python3. 
+with Python3. 
 install the necessary python dictionaries. 
 
 MIT License
